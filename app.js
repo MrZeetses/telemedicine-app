@@ -1,11 +1,14 @@
+// 1. КОНФИГУРАЦИЯ
 const SB_URL = 'https://myopwyxeiaxinspfslew.supabase.co';
 const SB_KEY = 'sb_publishable_0UiJlElFh8zz8IORqx-cRw_UsVEVC4g';
 
 const supabaseClient = window.supabase.createClient(SB_URL, SB_KEY);
 
-let isSignUpMode = true; // По умолчанию мы в режиме регистрации
+let isSignUpMode = true; 
+let currentUser = null;
+let currentRole = null;
 
-// ГЛАВНАЯ ФУНКЦИЯ ДЛЯ КНОПКИ
+// 2. ГЛАВНАЯ ФУНКЦИЯ АВТОРИЗАЦИИ
 async function handleSubmit() {
     const email = document.getElementById('email').value;
     const password = document.getElementById('password').value;
@@ -13,7 +16,6 @@ async function handleSubmit() {
     if (!email || !password) return alert("Введите почту и пароль");
 
     if (isSignUpMode) {
-        // ЛОГИКА РЕГИСТРАЦИИ
         const fullName = document.getElementById('full_name').value;
         const role = document.querySelector('input[name="role"]:checked').value;
         
@@ -23,22 +25,20 @@ async function handleSubmit() {
         
         if (data.user) {
             await supabaseClient.from('profiles').insert([{ id: data.user.id, full_name: fullName, role: role }]);
-            alert("Регистрация успешна! Теперь нажмите 'Перейти ко входу' и войдите.");
+            alert("Регистрация успешна! Теперь переключитесь на 'Вход'.");
+            window.toggleAuthMode();
         }
     } else {
-        // ЛОГИКА ВХОДА
         const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
         
         if (error) return alert("Ошибка входа: " + error.message);
         
-        // Если вход успешен, получаем профиль
         const { data: profile } = await supabaseClient.from('profiles').select('*').eq('id', data.user.id).single();
-        
         showDashboard(profile);
     }
 }
 
-// ПЕРЕКЛЮЧАТЕЛЬ (ИСПРАВЛЕННЫЙ)
+// 3. ПЕРЕКЛЮЧАТЕЛЬ РЕЖИМОВ
 window.toggleAuthMode = function() {
     isSignUpMode = !isSignUpMode;
     
@@ -63,8 +63,7 @@ window.toggleAuthMode = function() {
     }
 };
 
-// ПОКАЗ ПАНЕЛИ
-// 1. Главная функция отображения кабинета
+// 4. ПАНЕЛЬ УПРАВЛЕНИЯ
 async function showDashboard(profile) {
     currentUser = profile;
     currentRole = profile.role;
@@ -82,12 +81,11 @@ async function showDashboard(profile) {
     }
 }
 
-// 2. Интерфейс Пациента: Список врачей + Запись
+// 5. ИНТЕРФЕЙС ПАЦИЕНТА
 async function renderPatientUI() {
     const list = document.getElementById('appointments-list');
     list.innerHTML = `<p class="text-gray-500">Загрузка врачей...</p>`;
 
-    // Получаем список всех врачей из базы
     const { data: doctors, error } = await supabaseClient
         .from('profiles')
         .select('id, full_name, specialty')
@@ -100,28 +98,28 @@ async function renderPatientUI() {
 
     list.innerHTML = `
         <h4 class="font-bold mb-2 text-blue-600">Доступные врачи:</h4>
-        <div class="grid gap-4">
+        <div class="grid gap-2 mb-6">
             ${doctors.map(doc => `
-                <div class="p-4 border rounded-lg bg-white shadow-sm flex justify-between items-center">
+                <div class="p-3 border rounded-lg bg-white shadow-sm flex justify-between items-center">
                     <div>
-                        <p class="font-bold">${doc.full_name}</p>
-                        <p class="text-xs text-gray-500">${doc.specialty || 'Общая практика'}</p>
+                        <p class="font-bold text-sm">${doc.full_name}</p>
+                        <p class="text-xs text-gray-500">${doc.specialty || 'Терапевт'}</p>
                     </div>
-                    <button onclick="bookAppointment('${doc.id}')" class="bg-green-500 text-white px-3 py-1 rounded text-sm hover:bg-green-600">
+                    <button onclick="bookAppointment('${doc.id}')" class="bg-green-500 text-white px-3 py-1 rounded text-xs hover:bg-green-600">
                         Записаться
                     </button>
                 </div>
             `).join('')}
         </div>
-        <hr class="my-6">
-        <h4 class="font-bold mb-2 text-blue-600">Мои записи:</h4>
-        <div id="my-booked-appointments">Загрузка ваших записей...</div>
+        <hr class="my-4">
+        <h4 class="font-bold mb-2 text-blue-600 text-sm italic">Мои записи:</h4>
+        <div id="my-booked-appointments" class="space-y-2">Загрузка ваших записей...</div>
     `;
-    loadAppointments(); // Загружаем уже созданные записи
+    loadAppointments();
 }
 
-// 3. Функция записи на прием
-async function bookAppointment(doctorId) {
+// 6. ЗАПИСЬ НА ПРИЕМ
+window.bookAppointment = async function(doctorId) {
     const roomId = 'room-' + Math.random().toString(36).substr(2, 9);
     const scheduledAt = new Date().toISOString();
 
@@ -138,17 +136,17 @@ async function bookAppointment(doctorId) {
     if (error) {
         alert("Ошибка записи: " + error.message);
     } else {
-        alert("Вы успешно записались на прием!");
+        alert("Вы успешно записались!");
         loadAppointments();
     }
-}
+};
 
-// 4. Загрузка реальных встреч из базы
+// 7. ЗАГРУЗКА ВСТРЕЧ
 async function loadAppointments() {
     const containerId = currentRole === 'patient' ? 'my-booked-appointments' : 'appointments-list';
     const container = document.getElementById(containerId);
-    
-    // Запрос: достаем встречи и имя партнера (врача или пациента)
+    if (!container) return;
+
     const partnerTable = currentRole === 'patient' ? 'doctor_id' : 'patient_id';
     
     const { data, error } = await supabaseClient
@@ -159,20 +157,53 @@ async function loadAppointments() {
         `)
         .eq(currentRole === 'patient' ? 'patient_id' : 'doctor_id', currentUser.id);
 
-    if (error || !data) {
+    if (error || !data || data.length === 0) {
         container.innerHTML = "<p class='text-sm text-gray-400'>Записей пока нет</p>";
         return;
     }
 
     container.innerHTML = data.map(app => `
-        <div class="flex justify-between items-center p-4 border rounded bg-blue-50 mb-2 border-blue-100 shadow-sm">
+        <div class="flex justify-between items-center p-3 border rounded bg-blue-50 border-blue-100 shadow-sm">
             <div>
-                <p class="font-bold text-gray-800">${app.profiles.full_name}</p>
-                <p class="text-xs text-gray-500">${new Date(app.scheduled_at).toLocaleString()}</p>
+                <p class="font-bold text-gray-800 text-sm">${app.profiles.full_name}</p>
+                <p class="text-[10px] text-gray-500">${new Date(app.scheduled_at).toLocaleString()}</p>
             </div>
-            <button onclick="startVideo('${app.room_id}')" class="bg-blue-600 text-white px-4 py-2 rounded text-sm hover:bg-blue-700 transition">
-                Войти в кабинет
+            <button onclick="startVideo('${app.room_id}')" class="bg-blue-600 text-white px-3 py-1 rounded text-xs hover:bg-blue-700 transition">
+                Войти
             </button>
         </div>
     `).join('');
 }
+
+// 8. ВИДЕОСВЯЗЬ
+window.startVideo = function(roomId) {
+    const container = document.getElementById('video-container');
+    container.innerHTML = ""; // Очищаем заглушку
+    
+    const domain = "meet.jit.si";
+    const options = {
+        roomName: "TeleMed-" + roomId,
+        width: "100%",
+        height: "100%",
+        parentNode: container,
+        userInfo: {
+            displayName: currentUser.full_name
+        }
+    };
+    new JitsiMeetExternalAPI(domain, options);
+};
+
+// 9. ВЫХОД
+window.logout = async function() {
+    await supabaseClient.auth.signOut();
+    location.reload();
+};
+
+// 10. ИНИЦИАЛИЗАЦИЯ ПРИ ЗАГРУЗКЕ
+window.onload = () => {
+    const submitBtn = document.getElementById('submit-btn');
+    if (submitBtn) {
+        submitBtn.onclick = handleSubmit;
+    }
+    console.log("TeleMed App Ready");
+};
