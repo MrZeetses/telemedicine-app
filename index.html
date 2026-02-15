@@ -6,7 +6,7 @@
     <title>TeleMed Online</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="https://8x8.vc/vpaas-magic-cookie-8877665544332211/external_api.js"></script>
+    <script src="https://meet.jit.si/external_api.js"></script>
 </head>
 <body class="bg-gray-100 font-sans">
 
@@ -15,41 +15,55 @@
             <h2 id="auth-title" class="text-2xl font-bold mb-6 text-blue-600 text-center">Регистрация</h2>
             
             <div class="space-y-4">
-                <input type="text" id="full_name" placeholder="Полное имя" class="w-full p-3 border rounded-lg">
-                <input type="email" id="email" placeholder="Email" class="w-full p-3 border rounded-lg">
-                <input type="password" id="password" placeholder="Пароль" class="w-full p-3 border rounded-lg">
+                <input type="text" id="full_name" placeholder="Полное имя" class="w-full p-3 border rounded-lg focus:outline-blue-500">
+                <input type="email" id="email" placeholder="Email" class="w-full p-3 border rounded-lg focus:outline-blue-500">
+                <input type="password" id="password" placeholder="Пароль" class="w-full p-3 border rounded-lg focus:outline-blue-500">
                 
-                <div id="role-selection" class="flex gap-4 py-2">
-                    <label><input type="radio" name="role" value="patient" checked> Пациент</label>
-                    <label><input type="radio" name="role" value="doctor"> Врач</label>
+                <div id="role-selection" class="flex gap-4 py-2 justify-center bg-gray-50 rounded-lg">
+                    <label class="flex items-center gap-2 cursor-pointer text-sm">
+                        <input type="radio" name="role" value="patient" checked> Пациент
+                    </label>
+                    <label class="flex items-center gap-2 cursor-pointer text-sm">
+                        <input type="radio" name="role" value="doctor"> Врач
+                    </label>
                 </div>
 
-                <button id="submit-btn" class="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition">
+                <button id="submit-btn" class="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition shadow-md">
                     Создать аккаунт
                 </button>
                 
                 <p class="text-center text-sm text-gray-500 mt-4">
-                    <a href="#" onclick="toggleAuthMode(); return false;" class="text-blue-600 underline">Перейти ко входу</a>
+                    <a href="javascript:void(0)" onclick="window.toggleAuthMode()" id="toggle-link" class="text-blue-600 font-medium hover:underline">
+                        Уже есть аккаунт? Войти
+                    </a>
                 </p>
             </div>
         </div>
     </div>
 
     <div id="dashboard" class="hidden min-h-screen p-6">
-        <header class="flex justify-between items-center mb-8 bg-white p-4 rounded shadow">
+        <header class="flex justify-between items-center mb-8 bg-white p-4 rounded-lg shadow-sm border border-gray-200">
             <h1 class="text-xl font-bold text-gray-800" id="user-role-title">Панель управления</h1>
-            <button onclick="logout()" class="text-red-500 underline">Выйти</button>
+            <button onclick="logout()" class="text-red-500 font-medium hover:text-red-700 transition">Выйти</button>
         </header>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div class="bg-white p-6 rounded shadow">
-                <h3 class="text-lg font-semibold mb-4">Предстоящие консультации</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-6xl mx-auto">
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                <h3 class="text-lg font-semibold mb-4 text-gray-700 border-b pb-2">Ваши консультации</h3>
                 <div id="appointments-list" class="space-y-4">
-                    </div>
+                    <p class="text-gray-400 text-sm italic text-center py-4">Загрузка данных...</p>
+                </div>
             </div>
 
-            <div class="bg-black rounded shadow overflow-hidden flex items-center justify-center text-white min-h-[400px]" id="video-container">
-                <p>Выберите встречу, чтобы начать видеочат</p>
+            <div class="bg-slate-900 rounded-xl shadow-inner overflow-hidden flex flex-col items-center justify-center text-white min-h-[450px] relative border-4 border-white">
+                <div id="video-container" class="w-full h-full flex items-center justify-center text-center p-4">
+                    <div>
+                        <div class="mb-4 opacity-20">
+                            <svg class="w-20 h-20 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                        </div>
+                        <p class="text-slate-400">Выберите встречу из списка слева, чтобы начать сеанс видеосвязи</p>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
