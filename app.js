@@ -1,38 +1,104 @@
-// НАСТРОЙКИ SUPABASE (Замени на свои из панели Supabase)
+// 1. НАСТРОЙКИ (Твои данные)
 const SUPABASE_URL = 'https://myopwyxeiaxinspfslew.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_0UiJlElFh8zz8IORqx-cRw_UsVEVC4g';
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
+// Инициализируем клиент сразу
+const { createClient } = window.supabase;
+const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+console.log("Система TeleMed запущена...");
+
+// Переменные состояния
 let currentUser = null;
 let currentRole = null;
+let isSignUpMode = true;
 
-// 1. Функция входа
-async function handleLogin(role) {
+// 2. ФУНКЦИЯ РЕГИСТРАЦИИ (handleSignUp)
+// Сделаем её глобальной через window, чтобы HTML её всегда видел
+window.handleSignUp = async function() {
+    console.log("Кнопка регистрации нажата");
+    
+    try {
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+        const fullName = document.getElementById('full_name').value;
+        const role = document.querySelector('input[name="role"]:checked').value;
+
+        if (!email || !password || !fullName) {
+            alert("Заполните все поля!");
+            return;
+        }
+
+        // А. Регистрация в Auth
+        const { data: authData, error: authError } = await supabase.auth.signUp({
+            email: email,
+            password: password,
+        });
+
+        if (authError) throw authError;
+
+        if (authData.user) {
+            // Б. Запись в таблицу profiles
+            const { error: profileError } = await supabase
+                .from('profiles')
+                .insert([{ id: authData.user.id, full_name: fullName, role: role }]);
+
+            if (profileError) throw profileError;
+
+            alert("Успешно! Теперь перейдите ко входу.");
+            toggleAuthMode();
+        }
+    } catch (err) {
+        console.error("Ошибка:", err.message);
+        alert("Проблема: " + err.message);
+    }
+};
+
+// 3. ФУНКЦИЯ ВХОДА (handleSignIn)
+window.handleSignIn = async function() {
+    console.log("Кнопка входа нажата");
     const email = document.getElementById('email').value;
     const password = document.getElementById('password').value;
 
-    // Для демо-версии просто имитируем вход, в реальности используем supabase.auth.signIn()
-    if (email && password) {
-        currentUser = { email, id: Math.random().toString(36).substr(2, 9) };
-        currentRole = role;
-        showDashboard();
-    } else {
-        alert("Введите данные!");
-    }
-}
+    try {
+        const { data, error } = await supabase.auth.signInWithPassword({
+            email: email,
+            password: password,
+        });
 
-// 2. Отображение интерфейса
+        if (error) throw error;
+
+        // Получаем профиль
+        const { data: profile, error: pError } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', data.user.id)
+            .single();
+
+        if (pError) console.warn("Профиль не найден, используем роль по умолчанию");
+
+        currentUser = data.user;
+        currentRole = profile ? profile.role : 'patient';
+        
+        showDashboard();
+    } catch (err) {
+        alert("Ошибка входа: " + err.message);
+    }
+};
+
+// 4. ПАНЕЛЬ УПРАВЛЕНИЯ
 function showDashboard() {
     document.getElementById('auth-container').classList.add('hidden');
     document.getElementById('dashboard').classList.remove('hidden');
-    document.getElementById('user-role-title').innerText = 
-        currentRole === 'patient' ? "Личный кабинет Пациента" : "Кабинет Врача";
+    
+    const title = document.getElementById('user-role-title');
+    title.innerText = currentRole === 'patient' ? "Кабинет Пациента" : "Кабинет Врача";
     
     loadAppointments();
 }
 
-// 3. Загрузка списка встреч (Имитация работы с БД)
-function loadAppointments() {
+// 5. ТВОЯ ЛОГИКА ВСТРЕЧ И ВИДЕО
+window.loadAppointments = function() {
     const list = document.getElementById('appointments-list');
     const mockData = [
         { id: 'room-1', time: '14:00', partner: currentRole === 'patient' ? 'Д-р Смит' : 'Пациент Иван' },
@@ -40,40 +106,52 @@ function loadAppointments() {
     ];
 
     list.innerHTML = mockData.map(app => `
-        <div class="flex justify-between items-center p-4 border rounded hover:bg-gray-50">
+        <div class="flex justify-between items-center p-4 border rounded bg-white mb-2 shadow-sm">
             <div>
-                <p class="font-bold">${app.partner}</p>
+                <p class="font-bold text-gray-800">${app.partner}</p>
                 <p class="text-sm text-gray-500">Сегодня в ${app.time}</p>
             </div>
-            <button onclick="startVideo('${app.id}')" class="bg-blue-500 text-white px-4 py-2 rounded text-sm">
-                Войти в кабинет
+            <button onclick="startVideo('${app.id}')" class="bg-blue-600 text-white px-4 py-2 rounded text-sm hover:bg-blue-700">
+                Войти
             </button>
         </div>
     `).join('');
-}
+};
 
-// 4. ЗАПУСК ВИДЕО (Jitsi API)
-function startVideo(roomId) {
+window.startVideo = function(roomId) {
     const container = document.getElementById('video-container');
-    container.innerHTML = ""; // Очищаем контейнер
-
+    container.innerHTML = ""; 
+    
+    // Используем публичный сервер Jitsi
     const domain = "meet.jit.si";
     const options = {
-        roomName: "TeleMed-" + roomId,
+        roomName: "TeleMed-Room-" + roomId,
         width: "100%",
-        height: 450,
+        height: 400,
         parentNode: container,
-        userInfo: {
-            displayName: currentRole === 'patient' ? "Пациент" : "Врач"
-        },
-        interfaceConfigOverwrite: {
-            TOOLBAR_BUTTONS: ['microphone', 'camera', 'chat', 'hangup', 'settings']
-        }
     };
-    
-    const api = new JitsiMeetExternalAPI(domain, options);
-}
+    new JitsiMeetExternalAPI(domain, options);
+};
 
-function logout() {
-    location.reload(); // Простой способ сбросить сессию
-}
+// 6. ПЕРЕКЛЮЧАТЕЛЬ ИНТЕРФЕЙСА
+window.toggleAuthMode = function() {
+    isSignUpMode = !isSignUpMode;
+    const title = document.getElementById('auth-title');
+    const btn = document.getElementById('submit-btn');
+    const roleSel = document.getElementById('role-selection');
+    const nameInput = document.getElementById('full_name');
+
+    if (isSignUpMode) {
+        title.innerText = "Регистрация";
+        btn.innerText = "Создать аккаунт";
+        btn.onclick = window.handleSignUp;
+        roleSel.style.display = 'flex';
+        nameInput.style.display = 'block';
+    } else {
+        title.innerText = "Вход";
+        btn.innerText = "Войти";
+        btn.onclick = window.handleSignIn;
+        roleSel.style.display = 'none';
+        nameInput.style.display = 'none';
+    }
+};
