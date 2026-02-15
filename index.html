@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TeleMed Online</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+    <script src="https://8x8.vc/vpaas-magic-cookie-8877665544332211/external_api.js"></script>
+</head>
+<body class="bg-gray-100 font-sans">
+
+    <div id="auth-container" class="min-h-screen flex items-center justify-center">
+        <div class="bg-white p-8 rounded-lg shadow-md w-96">
+            <h2 class="text-2xl font-bold mb-6 text-blue-600 text-center">TeleMed Вход</h2>
+            <input type="email" id="email" placeholder="Email" class="w-full p-2 mb-4 border rounded">
+            <input type="password" id="password" placeholder="Пароль" class="w-full p-2 mb-4 border rounded">
+            <div class="flex flex-col gap-2">
+                <button onclick="handleLogin('patient')" class="bg-blue-500 text-white py-2 rounded hover:bg-blue-600">Войти как Пациент</button>
+                <button onclick="handleLogin('doctor')" class="bg-green-500 text-white py-2 rounded hover:bg-green-600">Войти как Врач</button>
+            </div>
+            <p class="text-xs text-gray-400 mt-4 text-center">Используйте любые данные для демо-входа</p>
+        </div>
+    </div>
+
+    <div id="dashboard" class="hidden min-h-screen p-6">
+        <header class="flex justify-between items-center mb-8 bg-white p-4 rounded shadow">
+            <h1 class="text-xl font-bold text-gray-800" id="user-role-title">Панель управления</h1>
+            <button onclick="logout()" class="text-red-500 underline">Выйти</button>
+        </header>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="bg-white p-6 rounded shadow">
+                <h3 class="text-lg font-semibold mb-4">Предстоящие консультации</h3>
+                <div id="appointments-list" class="space-y-4">
+                    </div>
+            </div>
+
+            <div class="bg-black rounded shadow overflow-hidden flex items-center justify-center text-white min-h-[400px]" id="video-container">
+                <p>Выберите встречу, чтобы начать видеочат</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
