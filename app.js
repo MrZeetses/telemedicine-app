@@ -1,6 +1,6 @@
 // НАСТРОЙКИ SUPABASE (Замени на свои из панели Supabase)
-const SUPABASE_URL = 'https://your-project-url.supabase.co';
-const SUPABASE_KEY = 'your-anon-key';
+const SUPABASE_URL = 'https://myopwyxeiaxinspfslew.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_0UiJlElFh8zz8IORqx-cRw_UsVEVC4g';
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 let currentUser = null;
