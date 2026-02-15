@@ -9,28 +9,27 @@
     <script src="https://8x8.vc/vpaas-magic-cookie-8877665544332211/external_api.js"></script>
 </head>
 <body class="bg-gray-100 font-sans">
+
     <div id="auth-container" class="min-h-screen flex items-center justify-center p-4">
         <div class="bg-white p-8 rounded-xl shadow-lg w-full max-w-md">
-            <h2 id="auth-title" class="text-2xl font-bold mb-6 text-blue-600 text-center">Регистрация в TeleMed</h2>
+            <h2 id="auth-title" class="text-2xl font-bold mb-6 text-blue-600 text-center">Регистрация</h2>
             
             <div class="space-y-4">
-                <input type="text" id="full_name" placeholder="Полное имя" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-400 outline-none">
-                <input type="email" id="email" placeholder="Email" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-400 outline-none">
-                <input type="password" id="password" placeholder="Паро hellль" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-400 outline-none">
+                <input type="text" id="full_name" placeholder="Полное имя" class="w-full p-3 border rounded-lg">
+                <input type="email" id="email" placeholder="Email" class="w-full p-3 border rounded-lg">
+                <input type="password" id="password" placeholder="Пароль" class="w-full p-3 border rounded-lg">
                 
                 <div id="role-selection" class="flex gap-4 py-2">
-                    <label class="flex items-center gap-2 cursor-pointer">
-                        <input type="radio" name="role" value="patient" checked> Пациент
-                    </label>
-                    <label class="flex items-center gap-2 cursor-pointer">
-                        <input type="radio" name="role" value="doctor"> Врач
-                    </label>
+                    <label><input type="radio" name="role" value="patient" checked> Пациент</label>
+                    <label><input type="radio" name="role" value="doctor"> Врач</label>
                 </div>
 
-                <button onclick="handleSignUp()" id="submit-btn" class="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition">Создать аккаунт</button>
+                <button id="submit-btn" class="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition">
+                    Создать аккаунт
+                </button>
                 
-                <p class="text-center text-sm text-gray-500">
-                    Уже есть аккаунт? <a href="#" onclick="toggleAuthMode()" class="text-blue-600 underline">Войти</a>
+                <p class="text-center text-sm text-gray-500 mt-4">
+                    <a href="#" onclick="toggleAuthMode(); return false;" class="text-blue-600 underline">Перейти ко входу</a>
                 </p>
             </div>
         </div>
