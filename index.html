@@ -3,58 +3,69 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TeleMed Online</title>
+    <title>TeleMed 103.kz</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://meet.jit.si/external_api.js"></script>
 </head>
-<body class="bg-gray-100 font-sans">
+<body class="bg-slate-50 font-sans">
 
     <div id="auth-container" class="min-h-screen flex items-center justify-center p-4">
-        <div class="bg-white p-8 rounded-xl shadow-lg w-full max-w-md">
-            <h2 id="auth-title" class="text-2xl font-bold mb-6 text-blue-600 text-center">Регистрация</h2>
+        <div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md border border-slate-100">
+            <h2 id="auth-title" class="text-2xl font-black mb-6 text-blue-700 text-center uppercase tracking-wider">Регистрация</h2>
             <div class="space-y-4">
-                <input type="text" id="full_name" placeholder="Полное имя" class="w-full p-3 border rounded-lg">
-                <input type="email" id="email" placeholder="Email" class="w-full p-3 border rounded-lg">
-                <input type="password" id="password" placeholder="Пароль" class="w-full p-3 border rounded-lg">
-                <div id="role-selection" class="flex gap-4 py-2">
-                    <label><input type="radio" name="role" value="patient" checked> Пациент</label>
-                    <label><input type="radio" name="role" value="doctor"> Врач</label>
+                <input type="text" id="full_name" placeholder="ФИО Администратора / Врача" class="w-full p-3 border rounded-xl focus:ring-2 focus:ring-blue-500 outline-none">
+                <input type="email" id="email" placeholder="E-mail" class="w-full p-3 border rounded-xl outline-none">
+                <input type="password" id="password" placeholder="Пароль" class="w-full p-3 border rounded-xl outline-none">
+                <div id="role-selection" class="flex gap-4 py-2 justify-center bg-slate-50 rounded-xl">
+                    <label class="text-sm"><input type="radio" name="role" value="admin" checked> Админ</label>
+                    <label class="text-sm"><input type="radio" name="role" value="doctor"> Врач</label>
+                    <label class="text-sm"><input type="radio" name="role" value="patient"> Пациент</label>
                 </div>
-                <button id="submit-btn" class="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition">Создать аккаунт</button>
-                <p class="text-center text-sm text-gray-500 mt-4">
-                    <a href="javascript:void(0)" onclick="window.toggleAuthMode()" id="toggle-link" class="text-blue-600 underline">Перейти ко входу</a>
+                <button id="submit-btn" class="w-full bg-blue-600 text-white py-4 rounded-xl font-bold shadow-lg hover:bg-blue-700 transition-all transform hover:scale-[1.02]">Создать аккаунт</button>
+                <p class="text-center text-xs text-slate-400 mt-4">
+                    <a href="javascript:void(0)" onclick="window.toggleAuthMode()" id="toggle-link" class="text-blue-600 font-bold hover:underline uppercase">Перейти ко входу</a>
                 </p>
             </div>
         </div>
     </div>
 
-    <div id="dashboard" class="hidden min-h-screen p-6">
-        <header class="flex justify-between items-center mb-8 bg-white p-4 rounded shadow max-w-6xl mx-auto">
-            <h1 class="text-xl font-bold text-gray-800" id="user-role-title">Панель управления</h1>
-            <div class="flex items-center gap-4">
-                <span id="display-name" class="font-medium text-blue-600"></span>
-                <button onclick="location.reload()" class="text-red-500 underline text-sm">Выйти</button>
-            </div>
+    <div id="dashboard" class="hidden min-h-screen flex flex-col">
+        <header class="bg-white border-b p-4 flex justify-between items-center shadow-sm">
+            <h1 class="text-lg font-bold text-blue-800" id="user-role-title">Модуль Телемедицины</h1>
+            <button onclick="location.reload()" class="bg-slate-100 text-slate-600 px-4 py-2 rounded-lg text-sm font-bold">Выйти</button>
         </header>
 
-        <main class="grid grid-cols-1 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
-            <div id="doctors-section" class="hidden bg-white p-6 rounded shadow lg:col-span-1">
-                <h3 class="text-lg font-semibold mb-4 text-blue-600">Записаться к врачу</h3>
-                <div id="doctors-list" class="space-y-3">
+        <main class="flex-1 p-6 grid grid-cols-1 lg:grid-cols-12 gap-6 max-w-7xl mx-auto w-full">
+            
+            <div id="admin-panel" class="hidden lg:col-span-4 space-y-6">
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+                    <h3 class="font-bold mb-4 text-slate-700 uppercase text-sm tracking-widest">Создать консультацию</h3>
+                    <div class="space-y-3">
+                        <input type="text" id="adm_doc_name" placeholder="ФИО Врача" class="w-full p-2 border rounded-lg text-sm">
+                        <input type="text" id="adm_pat_name" placeholder="ФИО Пациента" class="w-full p-2 border rounded-lg text-sm">
+                        <input type="datetime-local" id="adm_date" class="w-full p-2 border rounded-lg text-sm">
+                        <button onclick="createAppointment()" class="w-full bg-green-500 text-white py-2 rounded-lg font-bold text-sm">ПОЛУЧИТЬ ССЫЛКИ</button>
                     </div>
-            </div>
-
-            <div class="bg-white p-6 rounded shadow lg:col-span-1">
-                <h3 class="text-lg font-semibold mb-4 text-gray-700">Ваши консультации</h3>
-                <div id="appointments-list" class="space-y-4">
-                    <p class="text-gray-400 italic">Записей нет</p>
+                    <div id="links-display"></div>
+                </div>
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+                    <h3 class="font-bold mb-4 text-slate-700 uppercase text-sm tracking-widest text-center">Все консультации</h3>
+                    <div id="admin-appointments-list" class="max-h-[400px] overflow-y-auto"></div>
                 </div>
             </div>
 
-            <div class="lg:col-span-1">
-                <div id="video-container" class="bg-slate-900 rounded shadow min-h-[400px] flex items-center justify-center text-white overflow-hidden">
-                    <p class="p-8 text-center text-gray-400">Выберите активную встречу для начала видеочата</p>
+            <div id="user-panel" class="hidden lg:col-span-4 bg-white p-6 rounded-2xl shadow-sm border">
+                <h3 class="font-bold mb-4 text-blue-600">Ваши приемы</h3>
+                <div id="user-appointments-list" class="space-y-3"></div>
+            </div>
+
+            <div class="lg:col-span-8">
+                <div id="video-container" class="bg-slate-900 rounded-3xl shadow-2xl min-h-[500px] flex items-center justify-center text-slate-500 overflow-hidden border-4 border-white">
+                    <div class="text-center">
+                        <p class="text-4xl mb-4">📹</p>
+                        <p>Ожидание подключения к видео-кабинету...</p>
+                    </div>
                 </div>
             </div>
         </main>
